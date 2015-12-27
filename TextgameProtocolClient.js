@@ -2,6 +2,8 @@
  * This library is used to communicate with a textgame-gateway v1 server
  * via a websocket.  Clients should set the public attributes to
  * appropriate methods (as desired) before connecting.
+ * 
+ * Author: @Morticon.
  */
 function TextgameProtocolClient() {
     /** PUBLIC ATTRIBUTES **/
