@@ -4,6 +4,9 @@
 <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
+<--! Open all links in new tabs. -->
+<base target="_blank" />
+
 <style type="text/css">
 #output-area {
     overflow: auto;
@@ -51,7 +54,7 @@
 }
 
 </style>
-
+<script type="text/javascript" src="ansi_up.min.js"></script>
 <script type="text/javascript" src="TextgameProtocolClient.js"></script>
 
 <script>
@@ -62,6 +65,9 @@ var lastLine = "";
 function addText(text) {
     var outputArea = document.getElementById("output-area");
 
+    // Process input for ANSI color and links.
+    text = ansi_up.linkify(ansi_up.ansi_to_html(ansi_up.escape_for_html(text)));
+
     var newItem = document.createElement("div");
     newItem.className = "muckRecvText";
     newItem.innerHTML = text + "<BR/>";
@@ -70,7 +76,7 @@ function addText(text) {
 
     // Now remove excess stuff
     var recvTextList = document.getElementsByClassName("muckRecvText");
-    
+
     if (recvTextList.length > 5000) {
       outputArea.removeChild(recvTextList[0]);
     }
