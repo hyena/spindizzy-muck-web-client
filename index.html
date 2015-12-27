@@ -1,0 +1,175 @@
+<html >
+<title>MUCK Client (beta)</title>
+<head>
+<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style type="text/css">
+#output-area {
+    overflow: auto;
+    font-family: "Lucida Console", Monaco, monospace;
+    font-size: medium;
+    background-color: black;
+    color: white;
+}
+
+#input-line {
+  width: 100%;
+  background-color: DarkSlateBlue;
+  border-top: 5px solid black;
+/*  position: fixed; */
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+#input-field {
+  background: transparent;
+  color: White;
+  border-style: none;
+  width: 84%;
+  font-family: "Lucida Console", Monaco, monospace;
+  font-size: medium;
+}
+
+#submit-button {
+    width: 9%;
+    min-width: 2%;
+}
+
+#prev-button {
+    width: 5%;
+    min-width: 1%;
+}
+
+.muckRecvText {
+    white-space: pre;
+    word-wrap: break-word;
+    white-space: pre-wrap;       /* css-3 */
+}
+
+</style>
+
+<script type="text/javascript" src="TextgameProtocolClient.js"></script>
+
+<script>
+
+var connection = new TextgameProtocolClient();
+var lastLine = "";
+
+function addText(text) {
+    var outputArea = document.getElementById("output-area");
+
+    var newItem = document.createElement("div");
+    newItem.className = "muckRecvText";
+    newItem.innerHTML = text + "<BR/>";
+
+    outputArea.appendChild(newItem);
+
+    // Now remove excess stuff
+    var recvTextList = document.getElementsByClassName("muckRecvText");
+    
+    if (recvTextList.length > 5000) {
+      outputArea.removeChild(recvTextList[0]);
+    }
+
+    window.scrollBy(0,10000);
+}
+
+function submitText() {
+    var inputText = document.getElementById("input-field");
+
+    connection.sendLine(inputText.value);
+    lastLine = inputText.value;
+    inputText.value = "";
+}
+
+function uparrow() {
+    // Up arrow pressed
+    var inputText = document.getElementById("input-field");
+
+    if (inputText.value.length === 0) {
+        // Only show last line when nothing entered, to prevent
+        // accidental button pushes on touchscreens.
+        inputText.value = lastLine;
+    }
+
+    return true;
+}
+
+function submitenter(myfield,e) {
+    var keycode;
+
+    if (window.event) {
+        keycode = window.event.keyCode;
+    } else if (e) {
+        keycode = e.keyCode;
+    } else {
+        return true;
+    }
+
+    if (keycode == 13)
+    {
+        // Enter pressed
+        submitText();
+        return false;
+    } else if (keycode == 38) {
+        uparrow();
+
+        return true;
+    }
+    else {
+       return true;
+    }
+}
+
+window.onload = function(){
+    connection.onConnectionEstablished = function() {
+        addText('---CONNECTED');
+    };
+
+    connection.onDisconnection = function() {
+        addText('---DISCONNECTED');
+    };
+
+    connection.onLostConnection = function() {
+        addText('---Temporarily lost connection.  Attempting to reconnect...');
+    };
+
+    connection.onError = function(error) {
+        addText('---ERROR: ' + error);
+    }
+
+    connection.onReceivedTextLine = function(e) {
+        addText(e);
+    }
+
+    // connection.connect("ws://127.0.0.1:7000/no-host-provided/myhost.net/111.222.333.444/");
+    connection.connect("wss://muck.spindizzy.org/wsgateway/");
+};
+
+window.onunload = function(){
+    connection.disconnect();
+}
+
+</script>
+
+</head>
+
+<body style="background-color: black;">
+<div id="scrollable-area">
+<div id="output-area" >
+</div>
+<div>
+</div>
+<div id="input-line">
+<input id="input-field" onKeyPress="return submitenter(this, event)" placeholder="Input Line" />
+<button id="prev-button" title="See last text sent to server, only when input line is empty" onClick="uparrow();">Prev</button>
+<button id="submit-button" onClick="submitText();" title="Sends text to server">Send</button>
+</div>
+</div>
+
+</body>
+</html>
